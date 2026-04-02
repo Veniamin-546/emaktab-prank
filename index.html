@@ -14,16 +14,28 @@
             font-family: 'Inter', sans-serif;
             background-color: #0d143c;
             -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
         }
+
         .scrollbar-hide::-webkit-scrollbar {
             display: none;
         }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            scroll-behavior: smooth;
+        }
+
         .animate-in {
             animation: slideIn 0.3s ease-out forwards;
         }
         @keyframes slideIn {
             from { transform: translateY(100%); }
             to { transform: translateY(0); }
+        }
+
+        .grade-card:active {
+            transform: scale(0.95);
         }
     </style>
 </head>
@@ -82,9 +94,13 @@
 
         <!-- ПОСЛЕДНИЕ ОЦЕНКИ -->
         <div class="px-4 mb-8">
-            <h2 class="text-[15px] font-black mb-4">Последние оценки</h2>
-            <div id="grades-container" class="flex gap-4 overflow-x-auto pb-4 scrollbar-hide px-1">
-                <!-- Оценки рендерятся здесь -->
+            <div class="flex justify-between items-end mb-4 px-1">
+                <h2 class="text-[15px] font-black">Последние оценки</h2>
+                <span class="text-[10px] text-blue-400 font-bold uppercase opacity-50">Листай →</span>
+            </div>
+            
+            <div id="grades-container" class="flex gap-4 overflow-x-auto pb-4 scrollbar-hide px-1 snap-x snap-mandatory">
+                <!-- Оценки -->
             </div>
         </div>
 
@@ -93,8 +109,8 @@
             <div class="flex justify-between items-center mb-8">
                 <h2 class="text-xl font-black tracking-tight">Расписание</h2>
                 <div class="flex gap-5 text-blue-500">
-                    <i data-lucide="chevron-left"></i>
-                    <i data-lucide="chevron-right"></i>
+                    <i data-lucide="chevron-left" class="cursor-pointer"></i>
+                    <i data-lucide="chevron-right" class="cursor-pointer"></i>
                 </div>
             </div>
 
@@ -146,13 +162,14 @@
                     <h3 class="text-[10px] font-black text-blue-400 uppercase tracking-widest px-1">Поставить оценку</h3>
                     
                     <div id="subjects-list" class="flex flex-wrap gap-2">
-                        <!-- Предметы рендерятся здесь -->
+                        <!-- Предметы -->
                     </div>
 
                     <div class="flex gap-2">
-                        <input type="text" id="input-score" placeholder="2, 8, 5/50" class="flex-1 bg-[#0d143c] p-4 rounded-2xl outline-none border border-white/5 font-bold">
+                        <input type="text" id="input-score" placeholder="Напр: 30/30 или 9" class="flex-1 bg-[#0d143c] p-4 rounded-2xl outline-none border border-white/5 font-bold">
                         <button onclick="addGrade()" class="bg-blue-600 px-6 rounded-2xl font-black shadow-lg active:scale-95 transition-all">ОК</button>
                     </div>
+                    <p class="text-[9px] text-blue-300/40 font-bold px-1 italic">* Если 30/30 — будет зеленая автоматически</p>
                 </div>
 
                 <button onclick="saveProfile()" class="w-full bg-white text-black p-5 rounded-[24px] font-black text-lg active:scale-95 transition-all mt-4 shadow-2xl">
@@ -163,10 +180,10 @@
 
         <!-- НИЖНЯЯ ПАНЕЛЬ -->
         <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-[#0d143c]/90 backdrop-blur-md border-t border-white/5 px-8 py-5 flex justify-between items-center z-40">
-            <i data-lucide="home" class="text-blue-500"></i>
-            <i data-lucide="message-circle" class="text-gray-600"></i>
-            <i data-lucide="book-open" class="text-gray-600"></i>
-            <i data-lucide="bar-chart-2" class="text-gray-600"></i>
+            <i data-lucide="home" class="text-blue-500 cursor-pointer"></i>
+            <i data-lucide="message-circle" class="text-gray-600 cursor-pointer"></i>
+            <i data-lucide="book-open" class="text-gray-600 cursor-pointer"></i>
+            <i data-lucide="bar-chart-2" class="text-gray-600 cursor-pointer"></i>
             <button onclick="toggleModal(true)"><i data-lucide="user" class="text-gray-600"></i></button>
         </div>
     </div>
@@ -181,17 +198,19 @@
         };
 
         let grades = [
-            { id: 1, subject: 'Литература', score: '7', date: 'ОТВ, ЗА 1 АПР.', isNew: false, color: '#e67e22' },
-            { id: 2, subject: 'Англ. язык', score: '8', date: 'ОТВ, ЗА 1 АПР.', isNew: false, color: '#44a02c' },
+            { id: 1, subject: 'Математика', score: '30/30', date: 'СОР, ЗА 2 АПР.', isNew: true, color: '#44a02c' },
+            { id: 2, subject: 'Рус. язык', score: '9', date: 'ОТВ, ЗА 2 АПР.', isNew: true, color: '#44a02c' },
+            { id: 3, subject: 'Литература', score: '7', date: 'ОТВ, ЗА 1 АПР.', isNew: false, color: '#e67e22' },
+            { id: 4, subject: 'Англ. язык', score: '8', date: 'ОТВ, ЗА 1 АПР.', isNew: false, color: '#44a02c' },
+            { id: 5, subject: 'Физика', score: '4', date: 'ОТВ, ЗА 31 МАР.', isNew: false, color: '#9b1d1d' },
         ];
 
-        let selectedSubject = 'История (СОЧ)';
+        let selectedSubject = 'Математика';
         const subjects = ['Математика', 'Рус. язык', 'Литература', 'Англ. язык', 'История (СОЧ)', 'Физика', 'Химия', 'Технология', 'География'];
 
         // --- ФУНКЦИИ ОБНОВЛЕНИЯ UI ---
 
         function renderAll() {
-            // Инициалы и шапка
             const initials = profile.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
             document.getElementById('avatar-initials').innerText = initials;
             document.getElementById('display-name').innerText = profile.name;
@@ -200,54 +219,22 @@
             renderRating();
             renderGrades();
             renderSubjectSelectors();
-            lucide.createIcons(); // Обновляем иконки
+            lucide.createIcons();
         }
 
         function renderRating() {
             const container = document.getElementById('rating-list');
             const rank = Number(profile.rank);
             const pts = Number(profile.points);
-            
             let html = '';
             
-            // Предыдущий
             if (rank > 1) {
-                html += `
-                <div class="flex items-center gap-2 opacity-30">
-                    <span class="text-[11px] w-5 italic">${rank - 1}</span>
-                    <div class="flex-1 h-7 bg-[#0a1033] rounded-full flex items-center px-1">
-                        <div class="w-5 h-5 rounded-full bg-blue-400 ml-auto mr-1 overflow-hidden ring-1 ring-white/10">
-                            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=${rank-1}" alt="av" />
-                        </div>
-                    </div>
-                    <span class="text-[11px] font-bold">${pts + 3}</span>
-                </div>`;
+                html += `<div class="flex items-center gap-2 opacity-30"><span class="text-[11px] w-5 italic">${rank - 1}</span><div class="flex-1 h-7 bg-[#0a1033] rounded-full flex items-center px-1"><div class="w-5 h-5 rounded-full bg-blue-400 ml-auto mr-1 overflow-hidden"><img src="https://api.dicebear.com/7.x/bottts/svg?seed=${rank-1}"/></div></div><span class="text-[11px] font-bold">${pts + 3}</span></div>`;
             }
 
-            // Текущий (вы)
-            html += `
-            <div class="flex items-center gap-2">
-                <span class="text-[12px] text-blue-400 w-5 font-black italic">${rank}</span>
-                <div class="flex-1 h-10 bg-[#3b59df] rounded-full flex items-center px-1 shadow-lg border border-white/10 relative overflow-hidden">
-                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
-                    <div class="w-8 h-8 rounded-full bg-white text-[#3b59df] text-[11px] font-black flex items-center justify-center ml-auto shadow-inner relative z-10">
-                        ${profile.name.split(' ')[0][0].toUpperCase()}
-                    </div>
-                </div>
-                <span class="text-[12px] font-black text-white">${pts}</span>
-            </div>`;
+            html += `<div class="flex items-center gap-2"><span class="text-[12px] text-blue-400 w-5 font-black italic">${rank}</span><div class="flex-1 h-10 bg-[#3b59df] rounded-full flex items-center px-1 shadow-lg border border-white/10 relative overflow-hidden"><div class="w-8 h-8 rounded-full bg-white text-[#3b59df] text-[11px] font-black flex items-center justify-center ml-auto">${profile.name[0].toUpperCase()}</div></div><span class="text-[12px] font-black text-white">${pts}</span></div>`;
 
-            // Следующий
-            html += `
-            <div class="flex items-center gap-2 opacity-30">
-                <span class="text-[11px] w-5 italic">${rank + 1}</span>
-                <div class="flex-1 h-7 bg-[#0a1033] rounded-full flex items-center px-1">
-                    <div class="w-5 h-5 rounded-full bg-orange-400 ml-auto mr-1 overflow-hidden ring-1 ring-white/10">
-                        <img src="https://api.dicebear.com/7.x/bottts/svg?seed=${rank+1}" alt="av" />
-                    </div>
-                </div>
-                <span class="text-[11px] font-bold">${Math.max(0, pts - 2)}</span>
-            </div>`;
+            html += `<div class="flex items-center gap-2 opacity-30"><span class="text-[11px] w-5 italic">${rank + 1}</span><div class="flex-1 h-7 bg-[#0a1033] rounded-full flex items-center px-1"><div class="w-5 h-5 rounded-full bg-orange-400 ml-auto mr-1 overflow-hidden"><img src="https://api.dicebear.com/7.x/bottts/svg?seed=${rank+1}"/></div></div><span class="text-[11px] font-bold">${Math.max(0, pts - 2)}</span></div>`;
 
             container.innerHTML = html;
         }
@@ -255,9 +242,9 @@
         function renderGrades() {
             const container = document.getElementById('grades-container');
             container.innerHTML = grades.map(item => `
-                <div onclick="markAsRead(${item.id})" class="min-w-[105px] bg-[#162155] rounded-[24px] p-4 flex flex-col items-center text-center border border-white/5 shadow-lg relative cursor-pointer active:scale-95 transition-all">
+                <div onclick="markAsRead(${item.id})" class="grade-card min-w-[110px] snap-center bg-[#162155] rounded-[24px] p-4 flex flex-col items-center text-center border border-white/5 shadow-lg relative cursor-pointer transition-all duration-200">
                     ${item.isNew ? '<div class="absolute top-3 right-3 w-3.5 h-3.5 bg-[#3b82f6] rounded-full border-2 border-[#162155] shadow-[0_0_10px_#3b82f6]"></div>' : ''}
-                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-[19px] font-black mb-3 shadow-xl border border-white/10" style="background-color: ${item.color}">
+                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-[16px] font-black mb-3 shadow-xl border border-white/10" style="background-color: ${item.color}">
                         ${item.score}
                     </div>
                     <span class="text-[11px] font-bold mb-1 truncate w-full text-blue-50 uppercase tracking-tighter">${item.subject}</span>
@@ -281,7 +268,6 @@
         function toggleModal(show) {
             const modal = document.getElementById('settings-modal');
             if (show) {
-                // Заполняем поля ввода перед открытием
                 document.getElementById('input-name').value = profile.name;
                 document.getElementById('input-rank').value = profile.rank;
                 document.getElementById('input-points').value = profile.points;
@@ -300,23 +286,57 @@
         }
 
         function addGrade() {
-            const score = document.getElementById('input-score').value;
-            if (!score) return;
+            const rawScore = document.getElementById('input-score').value.trim();
+            if (!rawScore) return;
 
-            const isBad = score === '2' || score.includes('/') || parseInt(score) < 5;
+            let finalColor = '#44a02c'; // Дефолт зеленый
+
+            // Логика с дробью (процентная система)
+            if (rawScore.includes('/')) {
+                const parts = rawScore.split('/');
+                const current = parseFloat(parts[0]);
+                const total = parseFloat(parts[1]);
+                
+                if (!isNaN(current) && !isNaN(total) && total > 0) {
+                    const percent = (current / total) * 100;
+                    
+                    if (percent >= 99.9) finalColor = '#44a02c'; // 30/30, 25/25 и т.д.
+                    else if (percent >= 80) finalColor = '#44a02c'; // 4 и 5
+                    else if (percent >= 40) finalColor = '#e67e22'; // 3
+                    else finalColor = '#9b1d1d'; // 2
+                }
+            } 
+            // Логика обычных чисел
+            else {
+                const scoreValue = parseInt(rawScore);
+                if (scoreValue >= 11) {
+                    if (scoreValue >= 40) finalColor = '#44a02c';
+                    else if (scoreValue >= 15) finalColor = '#e67e22';
+                    else finalColor = '#9b1d1d';
+                } else {
+                    if (scoreValue >= 8) finalColor = '#44a02c';
+                    else if (scoreValue >= 5) finalColor = '#e67e22';
+                    else finalColor = '#9b1d1d';
+                }
+            }
+
             const newGrade = {
                 id: Date.now(),
                 subject: selectedSubject,
-                score: score,
+                score: rawScore,
                 date: `ОТВ, ЗА ${new Date().getDate()} АПР.`,
                 isNew: true,
-                color: isBad ? '#9b1d1d' : '#44a02c'
+                color: finalColor
             };
 
             grades = [newGrade, ...grades];
             document.getElementById('input-score').value = '';
             renderAll();
             toggleModal(false);
+            
+            setTimeout(() => {
+                document.getElementById('grades-container').scrollLeft = 0;
+            }, 100);
         }
 
         function markAsRead(id) {
@@ -324,9 +344,7 @@
             renderGrades();
         }
 
-        // Инициализация при загрузке
         window.onload = renderAll;
     </script>
 </body>
 </html>
-
