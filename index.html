@@ -1,0 +1,324 @@
+import React, { useState } from 'react';
+import { 
+  Home, 
+  MessageCircle, 
+  BookOpen, 
+  BarChart2, 
+  User, 
+  Bell, 
+  MapPin, 
+  ChevronRight, 
+  ChevronLeft,
+  Plus,
+  X,
+  Check
+} from 'lucide-react';
+
+const App = () => {
+  // --- Состояние профиля (Место, Баллы, Имя) ---
+  const [profile, setProfile] = useState({
+    name: 'Вениамин',
+    rank: 44,
+    points: 10,
+    school: '31 — мактаб'
+  });
+
+  // --- Состояние списка оценок ---
+  const [grades, setGrades] = useState([
+    { id: 1, subject: 'Литература', score: '7', date: 'ОТВ, ЗА 1 АПР.', isNew: false, color: '#e67e22' },
+    { id: 2, subject: 'Англ. язык', score: '8', date: 'ОТВ, ЗА 1 АПР.', isNew: false, color: '#44a02c' },
+  ]);
+
+  // --- Состояния интерфейса ---
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [newGradeSubject, setNewGradeSubject] = useState('История (СОЧ)');
+  const [newGradeScore, setNewGradeScore] = useState('');
+
+  const subjects = [
+    'Математика', 'Рус. язык', 'Литература', 'Англ. язык', 
+    'История (СОЧ)', 'Физика', 'Химия', 'Технология', 'География'
+  ];
+
+  // --- Функция добавления оценки ---
+  const handleAddGrade = () => {
+    if (!newGradeScore) return;
+    
+    // Определяем цвет (красный для низких баллов или СОЧ/СОР)
+    const isBad = newGradeScore === '2' || newGradeScore.includes('/') || parseInt(newGradeScore) < 5;
+    
+    const newEntry = {
+      id: Date.now(),
+      subject: newGradeSubject,
+      score: newGradeScore,
+      date: `ОТВ, ЗА ${new Date().getDate()} АПР.`,
+      isNew: true, // Включает синюю точку
+      color: isBad ? '#9b1d1d' : '#44a02c'
+    };
+    
+    setGrades([newEntry, ...grades]);
+    setNewGradeScore('');
+    setIsSettingsOpen(false); 
+  };
+
+  // --- Функция "Прочитать" оценку ---
+  const markAsRead = (id) => {
+    setGrades(grades.map(g => g.id === id ? { ...g, isNew: false } : g));
+  };
+
+  // --- Инициалы для аватарки ---
+  const getInitials = (name) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+  };
+
+  // --- Динамический расчет соседей по рейтингу (Исправлено!) ---
+  const currentRank = Number(profile.rank);
+  const prevRank = currentRank > 1 ? currentRank - 1 : null;
+  const nextRank = currentRank + 1;
+
+  return (
+    <div className="flex flex-col min-h-screen bg-[#0d143c] text-white font-sans max-w-md mx-auto overflow-hidden relative selection:bg-blue-500/30">
+      
+      {/* ОСНОВНОЙ ЭКРАН */}
+      <div className="flex-1 overflow-y-auto pb-24">
+        
+        {/* Шапка */}
+        <div className="p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3 bg-[#1e2b61] p-2 pr-6 rounded-2xl shadow-lg border border-white/5">
+            <div className="w-11 h-11 rounded-full bg-[#5d81f5] flex items-center justify-center text-sm font-bold border border-white/20">
+              {getInitials(profile.name)}
+            </div>
+            <div>
+              <h1 className="text-sm font-bold leading-tight">{profile.name}</h1>
+              <p className="text-[10px] text-blue-300/60 font-medium">{profile.school}</p>
+            </div>
+          </div>
+          <button 
+            onClick={() => setIsSettingsOpen(true)}
+            className="w-11 h-11 rounded-2xl bg-[#1e2b61] flex items-center justify-center border border-white/5 shadow-lg active:scale-95 transition-all"
+          >
+            <Plus size={24} className="text-blue-200" />
+          </button>
+        </div>
+
+        {/* Блок рейтинга */}
+        <div className="px-4 grid grid-cols-12 gap-3 mb-6">
+          <div className="col-span-8 bg-[#162155] rounded-[32px] p-5 border border-white/5 shadow-xl">
+            <div className="flex justify-between items-center mb-5">
+              <h2 className="text-[13px] font-bold text-blue-50">Рейтинг в классе</h2>
+              <ChevronRight size={16} className="text-blue-300/40" />
+            </div>
+            
+            <div className="space-y-4">
+              {/* Верхний сосед (показывается только если вы не на 1 месте) */}
+              {prevRank && (
+                <div className="flex items-center gap-2 opacity-30">
+                  <span className="text-[11px] w-5 italic">{prevRank}</span>
+                  <div className="flex-1 h-7 bg-[#0a1033] rounded-full flex items-center px-1">
+                    <div className="w-5 h-5 rounded-full bg-blue-400 ml-auto mr-1 overflow-hidden ring-1 ring-white/10">
+                      <img src={`https://api.dicebear.com/7.x/bottts/svg?seed=${prevRank}`} alt="av" />
+                    </div>
+                  </div>
+                  <span className="text-[11px] font-bold">{Number(profile.points) + 3}</span>
+                </div>
+              )}
+
+              {/* Ваш профиль */}
+              <div className="flex items-center gap-2">
+                <span className="text-[12px] text-blue-400 w-5 font-black italic">{currentRank}</span>
+                <div className="flex-1 h-10 bg-[#3b59df] rounded-full flex items-center px-1 shadow-lg border border-white/10 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+                  <div className="w-8 h-8 rounded-full bg-white text-[#3b59df] text-[11px] font-black flex items-center justify-center ml-auto shadow-inner relative z-10">
+                    {getInitials(profile.name)}
+                  </div>
+                </div>
+                <span className="text-[12px] font-black text-white">{profile.points}</span>
+              </div>
+
+              {/* Нижний сосед */}
+              <div className="flex items-center gap-2 opacity-30">
+                <span className="text-[11px] w-5 italic">{nextRank}</span>
+                <div className="flex-1 h-7 bg-[#0a1033] rounded-full flex items-center px-1">
+                  <div className="w-5 h-5 rounded-full bg-orange-400 ml-auto mr-1 overflow-hidden ring-1 ring-white/10">
+                    <img src={`https://api.dicebear.com/7.x/bottts/svg?seed=${nextRank}`} alt="av" />
+                  </div>
+                </div>
+                <span className="text-[11px] font-bold">{Math.max(0, Number(profile.points) - 2)}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-span-4 flex flex-col gap-3">
+            <div className="flex-1 bg-[#162155] rounded-[28px] p-4 border border-white/5 flex flex-col items-center justify-center text-center shadow-xl">
+              <Bell size={20} className="text-blue-100 mb-1" />
+              <span className="text-[11px] font-bold text-blue-50 leading-none">События</span>
+            </div>
+            <div className="flex-1 bg-[#162155] rounded-[28px] p-1 border border-white/5 relative overflow-hidden">
+              <div className="absolute inset-0 z-0 opacity-40 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')]"></div>
+              <div className="relative z-10 flex flex-col items-center h-full justify-between p-1">
+                <div className="bg-[#e65b2d] rounded-lg px-2 py-0.5 flex items-center gap-1">
+                  <MapPin size={8} fill="white" />
+                  <span className="text-[8px] font-black text-white uppercase tracking-tighter">В школе</span>
+                </div>
+                <div className="w-8 h-8 rounded-full border-2 border-white/80 overflow-hidden shadow-lg mb-1">
+                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=boy" alt="me" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Секция оценок */}
+        <div className="px-4 mb-8">
+          <h2 className="text-[15px] font-black mb-4">Последние оценки</h2>
+          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide px-1">
+            {grades.map((item) => (
+              <div 
+                key={item.id} 
+                onClick={() => markAsRead(item.id)}
+                className="min-w-[105px] bg-[#162155] rounded-[24px] p-4 flex flex-col items-center text-center border border-white/5 shadow-lg relative cursor-pointer active:scale-95 transition-all"
+              >
+                {/* Синий индикатор новой оценки */}
+                {item.isNew && (
+                  <div className="absolute top-3 right-3 w-3.5 h-3.5 bg-[#3b82f6] rounded-full border-2 border-[#162155] shadow-[0_0_10px_#3b82f6]"></div>
+                )}
+                
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-[19px] font-black mb-3 shadow-xl border border-white/10" style={{ backgroundColor: item.color }}>
+                  {item.score}
+                </div>
+                <span className="text-[11px] font-bold mb-1 truncate w-full text-blue-50 uppercase tracking-tighter">{item.subject}</span>
+                <span className="text-[9px] text-blue-300/40 font-bold uppercase tracking-tight">{item.date}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Нижний блок: Расписание */}
+        <div className="bg-black rounded-t-[44px] p-7 shadow-[0_-15px_40px_rgba(0,0,0,0.8)]">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-xl font-black tracking-tight">Расписание</h2>
+            <div className="flex gap-5 text-blue-500">
+              <ChevronLeft size={24} />
+              <ChevronRight size={24} />
+            </div>
+          </div>
+
+          <div className="bg-[#121212] rounded-[36px] p-6 border border-white/5">
+             <h3 className="text-[15px] font-black mb-1">Ср, 1 апр. <span className="text-blue-500 ml-2 italic">Сегодня</span></h3>
+             <div className="flex items-center gap-2 text-gray-500 mb-6">
+                <Check size={14} className="text-blue-400" />
+                <span className="text-[11px] font-bold"><span className="text-white">0/3</span> ДЗ на сегодня</span>
+             </div>
+             
+             <div className="bg-[#1c1c1c] rounded-3xl p-4 border border-white/5 flex justify-between items-center shadow-md">
+                <div>
+                  <h4 className="text-[13px] font-black">2. Англ. язык</h4>
+                  <p className="text-[11px] text-gray-500 font-bold">8:50 - 9:35</p>
+                </div>
+                <div className="bg-[#44a02c] px-4 py-1.5 rounded-xl text-sm font-black shadow-lg">8</div>
+             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* МОДАЛКА НАСТРОЕК */}
+      {isSettingsOpen && (
+        <div className="absolute inset-0 z-50 bg-[#060b21]/98 backdrop-blur-2xl p-6 overflow-y-auto animate-in slide-in-from-bottom duration-300">
+          <div className="flex justify-between items-center mb-10">
+            <h2 className="text-2xl font-black">Редактировать</h2>
+            <button onClick={() => setIsSettingsOpen(false)} className="p-2 bg-white/5 rounded-full"><X size={24} /></button>
+          </div>
+
+          <div className="space-y-6">
+            {/* Группа: Профиль */}
+            <div className="bg-[#162155] p-5 rounded-[32px] border border-white/10 space-y-4">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest px-1">Ваше имя</label>
+                <input 
+                  type="text" 
+                  value={profile.name}
+                  onChange={(e) => setProfile({...profile, name: e.target.value})}
+                  className="w-full bg-[#0d143c] p-4 rounded-2xl outline-none border border-white/5 font-bold"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest px-1">Ваше место</label>
+                  <input 
+                    type="number" 
+                    value={profile.rank}
+                    onChange={(e) => setProfile({...profile, rank: e.target.value})}
+                    className="w-full bg-[#0d143c] p-4 rounded-2xl outline-none border border-white/5 font-bold text-center"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest px-1">Баллы</label>
+                  <input 
+                    type="number" 
+                    value={profile.points}
+                    onChange={(e) => setProfile({...profile, points: e.target.value})}
+                    className="w-full bg-[#0d143c] p-4 rounded-2xl outline-none border border-white/5 font-bold text-center"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Группа: Новая оценка */}
+            <div className="bg-[#162155] p-5 rounded-[32px] border border-white/10 space-y-4">
+              <h3 className="text-[10px] font-black text-blue-400 uppercase tracking-widest px-1">Поставить оценку</h3>
+              
+              <div className="flex flex-wrap gap-2">
+                {subjects.map(s => (
+                  <button 
+                    key={s}
+                    onClick={() => setNewGradeSubject(s)}
+                    className={`px-3 py-2 rounded-xl text-[9px] font-bold border transition-all ${newGradeSubject === s ? 'bg-blue-600 border-blue-400' : 'bg-[#0d143c] border-white/5'}`}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex gap-2">
+                <input 
+                  type="text" 
+                  placeholder="2, 8, 5/50"
+                  value={newGradeScore} 
+                  onChange={(e) => setNewGradeScore(e.target.value)}
+                  className="flex-1 bg-[#0d143c] p-4 rounded-2xl outline-none border border-white/5 font-bold"
+                />
+                <button 
+                  onClick={handleAddGrade}
+                  className="bg-blue-600 px-6 rounded-2xl font-black shadow-lg"
+                >
+                  ОК
+                </button>
+              </div>
+            </div>
+
+            <button 
+              onClick={() => setIsSettingsOpen(false)}
+              className="w-full bg-white text-black p-5 rounded-[24px] font-black text-lg active:scale-95 transition-all mt-4"
+            >
+              Сохранить изменения
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* НИЖНЕЕ МЕНЮ */}
+      <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-[#0d143c]/90 backdrop-blur-md border-t border-white/5 px-8 py-5 flex justify-between items-center z-40">
+        <Home size={24} className="text-blue-500" />
+        <MessageCircle size={24} className="text-gray-600" />
+        <BookOpen size={24} className="text-gray-600" />
+        <BarChart2 size={24} className="text-gray-600" />
+        <button onClick={() => setIsSettingsOpen(true)}>
+          <User size={24} className={isSettingsOpen ? "text-blue-500" : "text-gray-600"} strokeWidth={2} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default App;
+
+
